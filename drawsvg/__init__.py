@@ -16,7 +16,7 @@ Example:
 
     d.append(draw.Rectangle(0,0,40,50, fill='#1248ff'))
     d.append(draw.Circle(-40, -10, 30,
-                fill='red', stroke_width=2, stroke='black'))
+                         fill='red', stroke_width=2, stroke='black'))
 
     p = draw.Path(stroke_width=2, stroke='green',
                   fill='black', fill_opacity=0.5)
@@ -33,10 +33,10 @@ Example:
     d.append(draw.Arc(60,-20,20,270,60,cw=True,
                 stroke='blue', stroke_width=1, fill='black', fill_opacity=0.3))
 
-    d.setPixelScale(2)  # Set number of pixels per geometry unit
-    #d.setRenderSize(400,200)  # Alternative to setPixelScale
-    d.saveSvg('example.svg')
-    d.savePng('example.png')
+    d.set_pixel_scale(2)  # Set number of pixels per geometry unit
+    #d.set_render_size(400,200)  # Alternative to set_pixel_scale
+    d.save_svg('example.svg')
+    d.save_png('example.png')
 
     # Display in iPython notebook
     d.rasterize()  # Display as PNG
@@ -62,11 +62,11 @@ from .animation import (
 # Make all elements available in the elements module
 from . import defs
 from . import elements
-def registerElement(name, elem):
+def register_element(name, elem):
     setattr(elements, name, elem)
-elementsDir = dir(elements)
+elements_dir = dir(elements)
 for k in dir(defs):
     if k.startswith('_'): continue
-    if k in elementsDir: continue
-    registerElement(k, getattr(defs, k))
+    if k in elements_dir: continue
+    register_element(k, getattr(defs, k))
 

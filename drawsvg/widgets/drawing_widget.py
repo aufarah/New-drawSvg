@@ -63,7 +63,7 @@ class DrawingWidget(widgets.DOMWidget):
         '''
         Redraw the displayed output with the current value of self.drawing.
         '''
-        self._image = self.drawing.asSvg()
+        self._image = self.drawing.as_svg()
 
     def _receive_msg(self, _, content, buffers):
         if not isinstance(content, dict):

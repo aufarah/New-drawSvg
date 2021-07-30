@@ -4,11 +4,11 @@ from .elements import DrawingElement, DrawingParentElement
 
 class DrawingDef(DrawingParentElement):
     ''' Parent class of SVG nodes that must be direct children of <defs> '''
-    def getSvgDefs(self):
+    def get_svg_defs(self):
         return (self,)
 
 class DrawingDefSub(DrawingParentElement):
-    ''' Parent class of SVG nodes that are meant to be descendants of a Def '''
+    ''' Parent class of SVG nodes that are meant to be descendants of a def '''
     pass
 
 class LinearGradient(DrawingDef):
@@ -16,17 +16,18 @@ class LinearGradient(DrawingDef):
 
         Has <stop> nodes as children. '''
     TAG_NAME = 'linearGradient'
-    def __init__(self, x1, y1, x2, y2, gradientUnits='userSpaceOnUse', **kwargs):
-        yShift = 0
+    def __init__(self, x1, y1, x2, y2, gradientUnits='userSpaceOnUse',
+                 **kwargs):
+        y_shift = 0
         if gradientUnits != 'userSpaceOnUse':
-            yShift = 1
-        try: y1 = yShift - y1
+            y_shift = 1
+        try: y1 = y_shift - y1
         except TypeError: pass
-        try: y2 = yShift - y2
+        try: y2 = y_shift - y2
         except TypeError: pass
-        super().__init__(x1=x1, y1=y1, x2=x2, y2=y2, gradientUnits=gradientUnits,
-                         **kwargs)
-    def addStop(self, offset, color, opacity=None, **kwargs):
+        super().__init__(x1=x1, y1=y1, x2=x2, y2=y2,
+                         gradientUnits=gradientUnits, **kwargs)
+    def add_stop(self, offset, color, opacity=None, **kwargs):
         stop = GradientStop(offset=offset, stop_color=color,
                             stop_opacity=opacity, **kwargs)
         self.append(stop)
@@ -36,17 +37,18 @@ class RadialGradient(DrawingDef):
 
         Has <stop> nodes as children. '''
     TAG_NAME = 'radialGradient'
-    def __init__(self, cx, cy, r, gradientUnits='userSpaceOnUse', fy=None, **kwargs):
-        yShift = 0
+    def __init__(self, cx, cy, r, gradientUnits='userSpaceOnUse', fy=None,
+                 **kwargs):
+        y_shift = 0
         if gradientUnits != 'userSpaceOnUse':
-            yShift = 1
-        try: cy = yShift - cy
+            y_shift = 1
+        try: cy = y_shift - cy
         except TypeError: pass
-        try: fy = yShift - fy
+        try: fy = y_shift - fy
         except TypeError: pass
         super().__init__(cx=cx, cy=cy, r=r, gradientUnits=gradientUnits,
                          fy=fy, **kwargs)
-    def addStop(self, offset, color, opacity=None, **kwargs):
+    def add_stop(self, offset, color, opacity=None, **kwargs):
         stop = GradientStop(offset=offset, stop_color=color,
                             stop_opacity=opacity, **kwargs)
         self.append(stop)
@@ -54,7 +56,7 @@ class RadialGradient(DrawingDef):
 class GradientStop(DrawingDefSub):
     ''' A control point for a radial or linear gradient '''
     TAG_NAME = 'stop'
-    hasContent = False
+    has_content = False
 
 class ClipPath(DrawingDef):
     ''' A shape used to crop another element by not drawing outside of this
@@ -78,7 +80,7 @@ class Filter(DrawingDef):
 
 class FilterItem(DrawingDefSub):
     ''' A child of Filter with any tag name'''
-    hasContent = False
+    has_content = False
     def __init__(self, tag_name, **args):
         super().__init__(**args)
         self.TAG_NAME = tag_name

@@ -38,7 +38,7 @@ $ brew install cairo
 ```python
 import drawsvg as draw
 
-d = draw.Drawing(200, 100, origin='center', displayInline=False)
+d = draw.Drawing(200, 100, origin='center', display_inline=False)
 
 # Draw an irregular polygon
 d.append(draw.Lines(-80, -45,
@@ -51,7 +51,7 @@ d.append(draw.Lines(-80, -45,
 
 # Draw a rectangle
 r = draw.Rectangle(-80,0,40,50, fill='#1248ff')
-r.appendTitle("Our first rectangle")  # Add a tooltip
+r.append_title("Our first rectangle")  # Add a tooltip
 d.append(r)
 
 # Draw a circle
@@ -89,10 +89,10 @@ d.append(draw.Line(30, -20, 0, -10,
             stroke='red', stroke_width=2, fill='none',
             marker_end=arrow))  # Add an arrow to the end of a line
 
-d.setPixelScale(2)  # Set number of pixels per geometry unit
-#d.setRenderSize(400,200)  # Alternative to setPixelScale
-d.saveSvg('example.svg')
-d.savePng('example.png')
+d.set_pixel_scale(2)  # Set number of pixels per geometry unit
+#d.set_render_size(400,200)  # Alternative to set_pixel_scale
+d.save_svg('example.svg')
+d.save_png('example.png')
 
 # Display in Jupyter notebook
 d.rasterize()  # Display as PNG
@@ -111,33 +111,33 @@ d.draw(draw.Rectangle(-0.75,-0.5,1.5,1, fill='#ddd'))
 
 # Create gradient
 gradient = draw.RadialGradient(0,-0.35,0.7*10)
-gradient.addStop(0.5/0.7/10, 'green', 1)
-gradient.addStop(1/10, 'red', 0)
+gradient.add_stop(0.5/0.7/10, 'green', 1)
+gradient.add_stop(1/10, 'red', 0)
 
 # Draw a shape to fill with the gradient
 p = draw.Path(fill=gradient, stroke='black', stroke_width=0.002)
 p.arc(0,-0.35,0.7,30,120)
-p.arc(0,-0.35,0.5,120,30,cw=True, includeL=True)
+p.arc(0,-0.35,0.5,120,30, cw=True, include_l=True)
 p.Z()
 d.append(p)
 
 # Draw another shape to fill with the same gradient
 p = draw.Path(fill=gradient, stroke='red', stroke_width=0.002)
 p.arc(0,-0.35,0.75,130,160)
-p.arc(0,-0.35,0,160,130,cw=True, includeL=True)
+p.arc(0,-0.35,0,160,130, cw=True, include_l=True)
 p.Z()
 d.append(p)
 
 # Another gradient
 gradient2 = draw.LinearGradient(0.1,-0.35,0.1+0.6,-0.35+0.2)
-gradient2.addStop(0, 'green', 1)
-gradient2.addStop(1, 'red', 0)
+gradient2.add_stop(0, 'green', 1)
+gradient2.add_stop(1, 'red', 0)
 d.append(draw.Rectangle(0.1,-0.35,0.6,0.2,
                         stroke='black', stroke_width=0.002,
                         fill=gradient2))
 
 # Display
-d.setRenderSize(w=600)
+d.set_render_size(w=600)
 d
 ```
 
@@ -165,7 +165,7 @@ g.append(draw.Use('circle', 0.25,0.1))
 d.append(g)
 
 # Display
-d.setRenderSize(400)
+d.set_render_size(400)
 d.rasterize()
 ```
 
@@ -197,7 +197,7 @@ hlink.append(draw.Text('Hyperlink',0.2, 0,0, center=0.6, fill='white'))
 
 # Draw and display
 d.append(hlink)
-d.setRenderSize(200)
+d.set_render_size(200)
 d
 ```
 
@@ -213,13 +213,13 @@ d = draw.Drawing(200, 200, origin='center')
 c = draw.Circle(0, 0, 20, fill='red')
 # See for supported attributes:
 # https://developer.mozilla.org/en-US/docs/Web/SVG/Element/animate
-c.appendAnim(draw.Animate('cy', '6s', '-80;80;-80',
-                          repeatCount='indefinite'))
-c.appendAnim(draw.Animate('cx', '6s', '0;80;0;-80;0',
-                          repeatCount='indefinite'))
-c.appendAnim(draw.Animate('fill', '6s', 'red;green;blue;yellow',
-                          calcMode='discrete',
-                          repeatCount='indefinite'))
+c.append_anim(draw.Animate('cy', '6s', '-80;80;-80',
+                           repeatCount='indefinite'))
+c.append_anim(draw.Animate('cx', '6s', '0;80;0;-80;0',
+                           repeatCount='indefinite'))
+c.append_anim(draw.Animate('fill', '6s', 'red;green;blue;yellow',
+                           calcMode='discrete',
+                           repeatCount='indefinite'))
 d.append(c)
 
 # Animate a black circle around an ellipse
@@ -231,15 +231,15 @@ ellipse.Z()
 c2 = draw.Circle(0, 0, 10)
 # See for supported attributes:
 # https://developer.mozilla.org/en-US/docs/Web/SVG/Element/animateMotion
-c2.appendAnim(draw.AnimateMotion(ellipse, '3s',
-                                 repeatCount='indefinite'))
+c2.append_anim(draw.AnimateMotion(ellipse, '3s',
+                                  repeatCount='indefinite'))
 # See for supported attributes:
 # https://developer.mozilla.org/en-US/docs/Web/SVG/Element/animateTransform
-c2.appendAnim(draw.AnimateTransform('scale', '3s', '1,2;2,1;1,2;2,1;1,2',
-                                    repeatCount='indefinite'))
+c2.append_anim(draw.AnimateTransform('scale', '3s', '1,2;2,1;1,2;2,1;1,2',
+                                     repeatCount='indefinite'))
 d.append(c2)
 
-d.saveSvg('animated.svg')  # Save to file
+d.save_svg('animated.svg')  # Save to file
 d  # Display in Jupyter notebook
 ```
 
@@ -253,7 +253,7 @@ import hyperbolic.poincare.shapes as hyper  # pip3 install hyperbolic
 
 # Create drawing
 d = draw.Drawing(2, 2, origin='center')
-d.setRenderSize(500)
+d.set_render_size(500)
 d.append(draw.Circle(0, 0, 1, fill='orange'))
 group = draw.Group()
 d.append(group)
@@ -301,7 +301,7 @@ import drawsvg as draw
 # Draw a frame of the animation
 def draw_frame(t):
     d = draw.Drawing(2, 6.05, origin=(-1,-1.05))
-    d.setRenderSize(h=300)
+    d.set_render_size(h=300)
     d.append(draw.Rectangle(-2, -2, 4, 8, fill='white'))
     d.append(draw.Rectangle(-1, -1.05, 2, 0.05, fill='brown'))
     t = (t + 1) % 2 - 1

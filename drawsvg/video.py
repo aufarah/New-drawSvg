@@ -6,7 +6,7 @@ from .drawing import Drawing
 
 def render_svg_frames(frames, align_bottom=False, align_right=False,
                       bg=(255,)*4, **kwargs):
-    arr_frames = [imageio.imread(d.rasterize().pngData)
+    arr_frames = [imageio.imread(d.rasterize().png_data)
                   for d in frames]
     max_width = max(map(lambda arr:arr.shape[1], arr_frames))
     max_height = max(map(lambda arr:arr.shape[0], arr_frames))

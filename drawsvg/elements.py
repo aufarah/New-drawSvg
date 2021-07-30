@@ -9,11 +9,10 @@ from collections import defaultdict
 
 from . import defs
 
-elementsModule = sys.modules[__name__]
+elements_module = sys.modules[__name__]
 
-# TODO: Support drawing ellipses without manually using Path
 
-def writeXmlNodeArgs(args, outputFile):
+def write_xml_node_args(args, output_file):
     for k, v in args.items():
         if v is None: continue
         if isinstance(v, DrawingElement):
@@ -23,30 +22,30 @@ def writeXmlNodeArgs(args, outputFile):
                 v = '#{}'.format(v.id)
             else:
                 v = 'url(#{})'.format(v.id)
-        outputFile.write(' {}="{}"'.format(k,v))
+        output_file.write(' {}="{}"'.format(k,v))
 
 
 class DrawingElement:
     ''' Base class for drawing elements
 
-        Subclasses must implement writeSvgElement '''
-    def writeSvgElement(self, idGen, isDuplicate, outputFile, dryRun,
-                        forceDup=False):
+        Subclasses must implement write_svg_element '''
+    def write_svg_element(self, id_gen, is_duplicate, output_file, dry_run,
+                          force_dup=False):
         raise NotImplementedError('Abstract base class')
-    def getSvgDefs(self):
+    def get_svg_defs(self):
         return ()
-    def getLinkedElems(self):
+    def get_linked_elems(self):
         return ()
-    def writeSvgDefs(self, idGen, isDuplicate, outputFile, dryRun):
-        for defn in self.getSvgDefs():
-            if isDuplicate(defn): continue
-            defn.writeSvgDefs(idGen, isDuplicate, outputFile, dryRun)
+    def write_svg_defs(self, id_gen, is_duplicate, output_file, dry_run):
+        for defn in self.get_svg_defs():
+            if is_duplicate(defn): continue
+            defn.write_svg_defs(id_gen, is_duplicate, output_file, dry_run)
             if defn.id is None:
-                defn.id = idGen()
-            defn.writeSvgElement(idGen, isDuplicate, outputFile, dryRun,
-                                 forceDup=True)
-            if not dryRun:
-                outputFile.write('\n')
+                defn.id = id_gen()
+            defn.write_svg_element(id_gen, is_duplicate, output_file, dry_run,
+                                   force_dup=True)
+            if not dry_run:
+                output_file.write('\n')
     def __eq__(self, other):
         return self is other
 
@@ -54,7 +53,7 @@ class DrawingBasicElement(DrawingElement):
     ''' Base class for SVG drawing elements that are a single node with no
         child nodes '''
     TAG_NAME = '_'
-    hasContent = False
+    has_content = False
     def __init__(self, **args):
         self.args = {}
         for k, v in args.items():
@@ -64,133 +63,135 @@ class DrawingBasicElement(DrawingElement):
                 k = k[:-1]
             self.args[k] = v
         self.children = []
-        self.orderedChildren = defaultdict(list)
-    def checkChildrenAllowed(self):
-        if not self.hasContent:
+        self.ordered_children = defaultdict(list)
+    def check_children_allowed(self):
+        if not self.has_content:
             raise RuntimeError(
                 '{} does not support children'.format(type(self)))
-    def allChildren(self):
-        ''' Returns self.children and self.orderedChildren as a single list. '''
+    def all_children(self):
+        ''' Returns self.children and self.ordered_children as a single list. '''
         output = list(self.children)
-        for z in sorted(self.orderedChildren):
-            output.extend(self.orderedChildren[z])
+        for z in sorted(self.ordered_children):
+            output.extend(self.ordered_children[z])
         return output
     @property
     def id(self):
         return self.args.get('id', None)
     @id.setter
-    def id(self, newId):
-        self.args['id'] = newId
-    def writeSvgElement(self, idGen, isDuplicate, outputFile, dryRun,
-                        forceDup=False):
-        children = self.allChildren()
-        if dryRun:
-            if isDuplicate(self) and self.id is None:
-                self.id = idGen()
-            for elem in self.getLinkedElems():
+    def id(self, new_id):
+        self.args['id'] = new_id
+    def write_svg_element(self, id_gen, is_duplicate, output_file, dry_run,
+                          force_dup=False):
+        children = self.all_children()
+        if dry_run:
+            if is_duplicate(self) and self.id is None:
+                self.id = id_gen()
+            for elem in self.get_linked_elems():
                 if elem.id is None:
-                    elem.id = idGen()
-            if self.hasContent:
-                self.writeContent(idGen, isDuplicate, outputFile, dryRun)
+                    elem.id = id_gen()
+            if self.has_content:
+                self.write_content(id_gen, is_duplicate, output_file, dry_run)
             if children:
-                self.writeChildrenContent(idGen, isDuplicate, outputFile,
-                                          dryRun)
+                self.write_children_content(id_gen, is_duplicate, output_file,
+                                            dry_run)
             return
-        if isDuplicate(self) and not forceDup:
-            outputFile.write('<use xlink:href="#{}" />'.format(self.id))
+        if is_duplicate(self) and not force_dup:
+            output_file.write('<use xlink:href="#{}" />'.format(self.id))
             return
-        outputFile.write('<')
-        outputFile.write(self.TAG_NAME)
-        writeXmlNodeArgs(self.args, outputFile)
-        if not self.hasContent and not children:
-            outputFile.write(' />')
+        output_file.write('<')
+        output_file.write(self.TAG_NAME)
+        write_xml_node_args(self.args, output_file)
+        if not self.has_content and not children:
+            output_file.write(' />')
         else:
-            outputFile.write('>')
-            if self.hasContent:
-                self.writeContent(idGen, isDuplicate, outputFile, dryRun)
+            output_file.write('>')
+            if self.has_content:
+                self.write_content(id_gen, is_duplicate, output_file, dry_run)
             if children:
-                self.writeChildrenContent(idGen, isDuplicate, outputFile,
-                                          dryRun)
-            outputFile.write('</')
-            outputFile.write(self.TAG_NAME)
-            outputFile.write('>')
-    def writeContent(self, idGen, isDuplicate, outputFile, dryRun):
+                self.write_children_content(id_gen, is_duplicate, output_file,
+                                            dry_run)
+            output_file.write('</')
+            output_file.write(self.TAG_NAME)
+            output_file.write('>')
+    def write_content(self, id_gen, is_duplicate, output_file, dry_run):
         ''' Override in a subclass to add data between the start and end
-            tags.  This will not be called if hasContent is False. '''
+            tags.  This will not be called if has_content is False. '''
         raise RuntimeError('This element has no content')
-    def writeChildrenContent(self, idGen, isDuplicate, outputFile, dryRun):
+    def write_children_content(self, id_gen, is_duplicate, output_file,
+                               dry_run):
         ''' Override in a subclass to add data between the start and end
-            tags.  This will not be called if hasContent is False. '''
-        children = self.allChildren()
-        if dryRun:
+            tags.  This will not be called if has_content is False. '''
+        children = self.all_children()
+        if dry_run:
             for child in children:
-                child.writeSvgElement(idGen, isDuplicate, outputFile, dryRun)
+                child.write_svg_element(id_gen, is_duplicate, output_file,
+                                        dry_run)
             return
-        outputFile.write('\n')
+        output_file.write('\n')
         for child in children:
-            child.writeSvgElement(idGen, isDuplicate, outputFile, dryRun)
-            outputFile.write('\n')
-    def getSvgDefs(self):
+            child.write_svg_element(id_gen, is_duplicate, output_file, dry_run)
+            output_file.write('\n')
+    def get_svg_defs(self):
         return [v for v in self.args.values()
                 if isinstance(v, DrawingElement)]
-    def writeSvgDefs(self, idGen, isDuplicate, outputFile, dryRun):
-        super().writeSvgDefs(idGen, isDuplicate, outputFile, dryRun)
-        for child in self.allChildren():
-            child.writeSvgDefs(idGen, isDuplicate, outputFile, dryRun)
+    def write_svg_defs(self, id_gen, is_duplicate, output_file, dry_run):
+        super().write_svg_defs(id_gen, is_duplicate, output_file, dry_run)
+        for child in self.all_children():
+            child.write_svg_defs(id_gen, is_duplicate, output_file, dry_run)
     def __eq__(self, other):
         if isinstance(other, type(self)):
             return (self.TAG_NAME == other.TAG_NAME and
                     self.args == other.args and
                     self.children == other.children and
-                    self.orderedChildren == other.orderedChildren)
+                    self.ordered_children == other.ordered_children)
         return False
-    def appendAnim(self, animateElement):
-        self.children.append(animateElement)
-    def extendAnim(self, animateIterable):
-        self.children.extend(animateIterable)
-    def appendTitle(self, text, **kwargs):
+    def append_anim(self, animate_element):
+        self.children.append(animate_element)
+    def extend_anim(self, animate_iterable):
+        self.children.extend(animate_iterable)
+    def append_title(self, text, **kwargs):
         self.children.append(Title(text, **kwargs))
 
 class DrawingParentElement(DrawingBasicElement):
     ''' Base class for SVG elements that can have child nodes '''
-    hasContent = True
-    def __init__(self, children=(), orderedChildren=None, **args):
+    has_content = True
+    def __init__(self, children=(), ordered_children=None, **args):
         super().__init__(**args)
         self.children = list(children)
-        if orderedChildren:
-            self.orderedChildren.update(
-                (z, list(v)) for z, v in orderedChildren.items())
-        if self.children or self.orderedChildren:
-            self.checkChildrenAllowed()
+        if ordered_children:
+            self.ordered_children.update(
+                (z, list(v)) for z, v in ordered_children.items())
+        if self.children or self.ordered_children:
+            self.check_children_allowed()
     def draw(self, obj, *, z=None, **kwargs):
         if obj is None:
             return
-        if not hasattr(obj, 'writeSvgElement'):
-            elements = obj.toDrawables(elements=elementsModule, **kwargs)
+        if not hasattr(obj, 'write_svg_element'):
+            elements = obj.to_drawables(elements=elements_module, **kwargs)
         else:
             assert len(kwargs) == 0
             elements = (obj,)
         self.extend(elements, z=z)
     def append(self, element, *, z=None):
-        self.checkChildrenAllowed()
+        self.check_children_allowed()
         if z is not None:
-            self.orderedChildren[z].append(element)
+            self.ordered_children[z].append(element)
         else:
             self.children.append(element)
     def extend(self, iterable, *, z=None):
-        self.checkChildrenAllowed()
+        self.check_children_allowed()
         if z is not None:
-            self.orderedChildren[z].extend(iterable)
+            self.ordered_children[z].extend(iterable)
         else:
             self.children.extend(iterable)
-    def writeContent(self, idGen, isDuplicate, outputFile, dryRun):
+    def write_content(self, id_gen, is_duplicate, output_file, dry_run):
         pass
 
 class NoElement(DrawingElement):
     ''' A drawing element that has no effect '''
     def __init__(self): pass
-    def writeSvgElement(self, idGen, isDuplicate, outputFile, dryRun,
-                        forceDup=False):
+    def write_svg_element(self, id_gen, is_duplicate, output_file, dry_run,
+                          force_dup=False):
         pass
     def __eq__(self, other):
         if isinstance(other, type(self)):
@@ -210,11 +211,11 @@ class Raw(Group):
         super().__init__(**kwargs)
         self.content = content
         self.defs = defs
-    def writeContent(self, idGen, isDuplicate, outputFile, dryRun):
-        if dryRun:
+    def write_content(self, id_gen, is_duplicate, output_file, dry_run):
+        if dry_run:
             return
-        outputFile.write(self.content)
-    def getSvgDefs(self):
+        output_file.write(self.content)
+    def get_svg_defs(self):
         return self.defs
 
 class Use(DrawingBasicElement):
@@ -223,11 +224,11 @@ class Use(DrawingBasicElement):
         The other element becomes an SVG def shared between all Use elements
         that reference it. '''
     TAG_NAME = 'use'
-    def __init__(self, otherElem, x, y, **kwargs):
+    def __init__(self, other_elem, x, y, **kwargs):
         y = -y
-        if isinstance(otherElem, str) and not otherElem.startswith('#'):
-            otherElem = '#' + otherElem
-        super().__init__(xlink__href=otherElem, x=x, y=y, **kwargs)
+        if isinstance(other_elem, str) and not other_elem.startswith('#'):
+            other_elem = '#' + other_elem
+        super().__init__(xlink__href=other_elem, x=x, y=y, **kwargs)
 
 class Animate(DrawingBasicElement):
     ''' Animation for a specific property of another element
@@ -237,33 +238,34 @@ class Animate(DrawingBasicElement):
     '''
     TAG_NAME = 'animate'
     def __init__(self, attributeName, dur, from_or_values=None, to=None,
-                 begin=None, otherElem=None, **kwargs):
+                 begin=None, other_elem=None, **kwargs):
         if to is None:
             values = from_or_values
             from_ = None
         else:
             values = None
             from_ = from_or_values
-        if isinstance(otherElem, str) and not otherElem.startswith('#'):
-            otherElem = '#' + otherElem
-        kwargs.update(attributeName=attributeName, to=to, dur=dur, begin=begin)
+        if isinstance(other_elem, str) and not other_elem.startswith('#'):
+            other_elem = '#' + other_elem
+        kwargs.update(attributeName=attributeName, to=to, dur=dur,
+                      begin=begin)
         kwargs.setdefault('values', values)
         kwargs.setdefault('from_', from_)
-        super().__init__(xlink__href=otherElem, **kwargs)
+        super().__init__(xlink__href=other_elem, **kwargs)
 
-    def getSvgDefs(self):
+    def get_svg_defs(self):
         return [v for k, v in self.args.items()
                 if isinstance(v, DrawingElement)
                 if k != 'xlink:href']
 
-    def getLinkedElems(self):
+    def get_linked_elems(self):
         return (self.args['xlink:href'],)
 
 class _Mpath(DrawingBasicElement):
     ''' Used by AnimateMotion '''
     TAG_NAME = 'mpath'
-    def __init__(self, otherPath, **kwargs):
-        super().__init__(xlink__href=otherPath, **kwargs)
+    def __init__(self, other_path, **kwargs):
+        super().__init__(xlink__href=other_path, **kwargs)
 
 class AnimateMotion(Animate):
     ''' Animation for the motion another element along a path
@@ -273,17 +275,18 @@ class AnimateMotion(Animate):
     '''
     TAG_NAME = 'animateMotion'
     def __init__(self, path, dur, from_or_values=None, to=None, begin=None,
-                 otherElem=None, **kwargs):
-        useMpath = False
+                 other_elem=None, **kwargs):
+        use_mpath = False
         if isinstance(path, DrawingElement):
-            useMpath = True
-            pathElem = path
+            use_mpath = True
+            path_elem = path
             path = None
         kwargs.setdefault('attributeName', None)
         super().__init__(dur=dur, from_or_values=from_or_values, to=to,
-                         begin=begin, path=path, otherElem=otherElem, **kwargs)
-        if useMpath:
-            self.children.append(_Mpath(pathElem))
+                         begin=begin, path=path, other_elem=other_elem,
+                         **kwargs)
+        if use_mpath:
+            self.children.append(_Mpath(path_elem))
 
 class AnimateTransform(Animate):
     ''' Animation for the transform property of another element
@@ -293,9 +296,9 @@ class AnimateTransform(Animate):
     '''
     TAG_NAME = 'animateTransform'
     def __init__(self, type, dur, from_or_values, to=None, begin=None,
-                 attributeName='transform', otherElem=None, **kwargs):
+                 attributeName='transform', other_elem=None, **kwargs):
         super().__init__(attributeName, dur=dur, from_or_values=from_or_values,
-                         to=to, begin=begin, type=type, otherElem=otherElem,
+                         to=to, begin=begin, type=type, other_elem=other_elem,
                          **kwargs)
 
 class Set(Animate):
@@ -307,9 +310,9 @@ class Set(Animate):
     '''
     TAG_NAME = 'set'
     def __init__(self, attributeName, dur, to=None, begin=None,
-                 otherElem=None, **kwargs):
+                 other_elem=None, **kwargs):
         super().__init__(attributeName, dur=dur, from_or_values=None,
-                         to=to, begin=begin, otherElem=otherElem, **kwargs)
+                         to=to, begin=begin, other_elem=other_elem, **kwargs)
 
 class Discard(Animate):
     ''' Animation configuration specifying when it is safe to discard another
@@ -323,7 +326,7 @@ class Discard(Animate):
         kwargs.setdefault('attributeName', None)
         kwargs.setdefault('to', None)
         kwargs.setdefault('dur', None)
-        super().__init__(from_or_values=None, begin=begin, otherElem=None,
+        super().__init__(from_or_values=None, begin=begin, other_elem=None,
                          **kwargs)
 
 class Image(DrawingBasicElement):
@@ -344,22 +347,22 @@ class Image(DrawingBasicElement):
     }
     MIME_DEFAULT = 'image/png'
     def __init__(self, x, y, width, height, path=None, data=None, embed=False,
-                 mimeType=None, **kwargs):
+                 mime_type=None, **kwargs):
         ''' Specify either the path or data argument.  If path is used and
             embed is True, the image file is embedded in a data URI. '''
         if path is None and data is None:
             raise ValueError('Either path or data arguments must be given')
         if embed:
-            if mimeType is None and path is not None:
+            if mime_type is None and path is not None:
                 ext = os.path.splitext(path)[1].lower()
                 if ext in self.MIME_MAP:
-                    mimeType = self.MIME_MAP[ext]
+                    mime_type = self.MIME_MAP[ext]
                 else:
-                    mimeType = self.MIME_DEFAULT
+                    mime_type = self.MIME_DEFAULT
                     warnings.warn('Unknown image file type "{}"'.format(ext),
                                   Warning)
-            if mimeType is None:
-                mimeType = self.MIME_DEFAULT
+            if mime_type is None:
+                mime_type = self.MIME_DEFAULT
                 warnings.warn('Unspecified image type; assuming png', Warning)
         if data is not None:
             embed = True
@@ -369,8 +372,8 @@ class Image(DrawingBasicElement):
         if not embed:
             uri = path
         else:
-            encData = base64.b64encode(data).decode()
-            uri = 'data:{};base64,{}'.format(mimeType, encData)
+            enc_data = base64.b64encode(data).decode()
+            uri = 'data:{};base64,{}'.format(mime_type, enc_data)
         super().__init__(x=x, y=-y-height, width=width, height=height,
                          xlink__href=uri, **kwargs)
 
@@ -384,28 +387,28 @@ class Text(DrawingParentElement):
         CairoSVG bug with letter spacing text on a path: The first two letters
         are always spaced as if letter_spacing=1. '''
     TAG_NAME = 'text'
-    hasContent = True
-    def __new__(cls, text, *args, path=None, id=None, _skipCheck=False,
+    has_content = True
+    def __new__(cls, text, *args, path=None, id=None, _skip_check=False,
                 **kwargs):
         # Check for the special case of multi-line text on a path
         # This is inconsistently implemented by renderers so we return a group
         # of single-line text on paths instead.
-        if path is not None and not _skipCheck:
-            text, _ = cls._handleTextArgument(text, True)
+        if path is not None and not _skip_check:
+            text, _ = cls._handle_text_argument(text, True)
             if len(text) > 1:
                 # Special case
                 g = Group(id=id)
                 for i, line in enumerate(text):
                     subtext = [None] * len(text)
                     subtext[i] = line
-                    g.append(Text(subtext, *args, path=path, _skipCheck=True,
+                    g.append(Text(subtext, *args, path=path, _skip_check=True,
                                   **kwargs))
                 return g
         return super().__new__(cls)
-    def __init__(self, text, fontSize, x=None, y=None, *, center=False,
-                 valign=None, lineHeight=1, lineOffset=0, path=None,
-                 startOffset=None, pathArgs=None, tspanArgs=None,
-                 cairoFix=True, _skipCheck=False, **kwargs):
+    def __init__(self, text, font_size, x=None, y=None, *, center=False,
+                 valign=None, line_height=1, line_offset=0, path=None,
+                 start_offset=None, path_args=None, tspan_args=None,
+                 cairo_fix=True, _skip_check=False, **kwargs):
         # Check argument requirements
         if path is None:
             if x is None or y is None:
@@ -421,122 +424,125 @@ class Text(DrawingParentElement):
                 raise TypeError(
                         "__init__() conflicting arguments: 'x' and 'y' "
                         "should not be used when 'path' is specified")
-        if pathArgs is None:
-            pathArgs = {}
-        if startOffset is not None:
-            pathArgs.setdefault('startOffset', startOffset)
-        if tspanArgs is None:
-            tspanArgs = {}
-        onPath = path is not None
+        if path_args is None:
+            path_args = {}
+        if start_offset is not None:
+            path_args.setdefault('startOffset', start_offset)
+        if tspan_args is None:
+            tspan_args = {}
+        on_path = path is not None
 
-        text, singleLine = self._handleTextArgument(text, forceMulti=onPath)
-        numLines = len(text)
+        text, single_line = self._handle_text_argument(text,
+                                                       force_multi=on_path)
+        num_lines = len(text)
 
         # Text alignment
-        centerCompat = False
+        center_compat = False
         if center and valign is None:
             valign = 'middle'
-            centerCompat = singleLine and not onPath
+            center_compat = single_line and not on_path
         if center and kwargs.get('text_anchor') is None:
             kwargs['text_anchor'] = 'middle'
         if valign == 'middle':
-            if centerCompat:  # Backwards compatible centering
-                lineOffset += 0.5 * center
+            if center_compat:  # Backwards compatible centering
+                line_offset += 0.5 * center
             else:
-                lineOffset += 0.4 - lineHeight * (numLines - 1) / 2
+                line_offset += 0.4 - line_height * (num_lines - 1) / 2
         elif valign == 'top':
-            lineOffset += 1
+            line_offset += 1
         elif valign == 'bottom':
-            lineOffset += -lineHeight * (numLines - 1)
-        if singleLine:
-            dy = '{}em'.format(lineOffset)
+            line_offset += -line_height * (num_lines - 1)
+        if single_line:
+            dy = '{}em'.format(line_offset)
             kwargs.setdefault('dy', dy)
         # Text alignment on a path
-        if onPath:
+        if on_path:
             if kwargs.get('text_anchor') == 'start':
-                pathArgs.setdefault('startOffset', '0')
+                path_args.setdefault('startOffset', '0')
             elif kwargs.get('text_anchor') == 'middle':
-                pathArgs.setdefault('startOffset', '50%')
+                path_args.setdefault('startOffset', '50%')
             elif kwargs.get('text_anchor') == 'end':
-                if cairoFix and 'startOffset' not in pathArgs:
+                if cairo_fix and 'startOffset' not in path_args:
                     # Fix CairoSVG not drawing the last character with aligned
                     # right
-                    tspanArgs.setdefault('dx', -1)
-                pathArgs.setdefault('startOffset', '100%')
+                    tspan_args.setdefault('dx', -1)
+                path_args.setdefault('startOffset', '100%')
 
-        super().__init__(x=x, y=y, font_size=fontSize, **kwargs)
-        self._textPath = None
-        if singleLine:
-            self.escapedText = xml.escape(text[0])
+        super().__init__(x=x, y=y, font_size=font_size, **kwargs)
+        self._text_path = None
+        if single_line:
+            self.escaped_text = xml.escape(text[0])
         else:
             # Add elements for each line of text
-            self.escapedText = ''
+            self.escaped_text = ''
             if path is None:
                 # Text is an iterable
                 for i, line in enumerate(text):
-                    dy = '{}em'.format(lineOffset if i == 0 else lineHeight)
-                    self.appendLine(line, x=x, dy=dy, **tspanArgs)
+                    dy = '{}em'.format(line_offset if i == 0 else line_height)
+                    self.append_line(line, x=x, dy=dy, **tspan_args)
             else:
-                self._textPath = _TextPath(path, **pathArgs)
+                self._text_path = _TextPath(path, **path_args)
                 assert sum(bool(line) for line in text) <= 1, (
                         'Logic error, __new__ should handle multi-line paths')
                 for i, line in enumerate(text):
                     if not line: continue
-                    dy = '{}em'.format(lineOffset + i*lineHeight)
-                    tspan = TSpan(line, dy=dy, **tspanArgs)
-                    self._textPath.append(tspan)
-                self.append(self._textPath)
+                    dy = '{}em'.format(line_offset + i*line_height)
+                    tspan = TSpan(line, dy=dy, **tspan_args)
+                    self._text_path.append(tspan)
+                self.append(self._text_path)
     @staticmethod
-    def _handleTextArgument(text, forceMulti=False):
+    def _handle_text_argument(text, force_multi=False):
         # Handle multi-line text (contains '\n' or is a list of strings)
-        singleLine = isinstance(text, str)
+        single_line = isinstance(text, str)
         if isinstance(text, str):
-            singleLine = '\n' not in text and not forceMulti
-            if singleLine:
+            single_line = '\n' not in text and not force_multi
+            if single_line:
                 text = (text,)
             else:
                 text = tuple(text.splitlines())
-                singleLine = False
+                single_line = False
         else:
-            singleLine = False
+            single_line = False
             text = tuple(text)
-        return text, singleLine
-    def writeContent(self, idGen, isDuplicate, outputFile, dryRun):
-        if dryRun:
+        return text, single_line
+    def write_content(self, id_gen, is_duplicate, output_file, dry_run):
+        if dry_run:
             return
-        outputFile.write(self.escapedText)
-    def writeChildrenContent(self, idGen, isDuplicate, outputFile, dryRun):
+        output_file.write(self.escaped_text)
+    def write_children_content(self, id_gen, is_duplicate, output_file,
+                               dry_run):
         ''' Override in a subclass to add data between the start and end
-            tags.  This will not be called if hasContent is False. '''
-        children = self.allChildren()
-        if dryRun:
+            tags.  This will not be called if has_content is False. '''
+        children = self.all_children()
+        if dry_run:
             for child in children:
-                child.writeSvgElement(idGen, isDuplicate, outputFile, dryRun)
+                child.write_svg_element(id_gen, is_duplicate, output_file,
+                                        dry_run)
             return
         for child in children:
-            child.writeSvgElement(idGen, isDuplicate, outputFile, dryRun)
-    def appendLine(self, line, **kwargs):
-        if self._textPath is not None:
-            raise ValueError('appendLine is not supported for text on a path')
+            child.write_svg_element(id_gen, is_duplicate, output_file, dry_run)
+    def append_line(self, line, **kwargs):
+        if self._text_path is not None:
+            raise ValueError('append_line is not supported for text on a path')
         self.append(TSpan(line, **kwargs))
 
 class _TextPath(DrawingParentElement):
     TAG_NAME = 'textPath'
-    hasContent = True
+    has_content = True
     def __init__(self, path, **kwargs):
         super().__init__(xlink__href=path, **kwargs)
 
 class _TextContainingElement(DrawingBasicElement):
     ''' A private parent class used for elements that only have plain text
         content. '''
-    hasContent = True
+    has_content = True
     def __init__(self, text, **kwargs):
         super().__init__(**kwargs)
-        self.escapedText = xml.escape(text)
-    def writeContent(self, idGen, isDuplicate, outputFile, dryRun):
-        if dryRun:
+        self.escaped_text = xml.escape(text)
+    def write_content(self, id_gen, is_duplicate, output_file, dry_run):
+        if dry_run:
             return
-        outputFile.write(self.escapedText)
+        output_file.write(self.escaped_text)
 
 class TSpan(_TextContainingElement):
     ''' A line of text within the Text element. '''
@@ -545,7 +551,7 @@ class TSpan(_TextContainingElement):
 class Title(_TextContainingElement):
     ''' A title element.
 
-        This element can be appended with shape.appendTitle("Your title!"),
+        This element can be appended with shape.append_title("Your title!"),
         which can be useful for adding a tooltip or on-hover text display
         to an element.
     '''
@@ -600,30 +606,23 @@ class ArcLine(Circle):
 
         Additional keyword arguments are output as additional arguments to the
         SVG node e.g. fill="red", stroke="#ff4477", stroke_width=2. '''
-    def __init__(self, cx, cy, r, startDeg, endDeg, **kwargs):
-        if endDeg - startDeg == 360:
+    def __init__(self, cx, cy, r, start_deg, end_deg, **kwargs):
+        if end_deg - start_deg == 360:
             super().__init__(cx, cy, r, **kwargs)
             return
-        startDeg, endDeg = (-endDeg) % 360, (-startDeg) % 360
-        arcDeg = (endDeg - startDeg) % 360
-        def arcLen(deg): return math.radians(deg) * r
-        wholeLen = 2 * math.pi * r
-        if endDeg == startDeg:
+        start_deg, end_deg = (-end_deg) % 360, (-start_deg) % 360
+        arc_deg = (end_deg - start_deg) % 360
+        def arc_len(deg): return math.radians(deg) * r
+        whole_len = 2 * math.pi * r
+        if end_deg == start_deg:
             offset = 1
-            dashes = "0 {}".format(wholeLen+2)
-        #elif endDeg >= startDeg:
-        elif True:
-            startLen = arcLen(startDeg)
-            arcLen = arcLen(arcDeg)
-            offLen = wholeLen - arcLen
-            offset = -startLen
-            dashes = "{} {}".format(arcLen, offLen)
-        #else:
-        #    firstLen = arcLen(endDeg)
-        #    secondLen = arcLen(360-startDeg)
-        #    gapLen = wholeLen - firstLen - secondLen
-        #    offset = 0
-        #    dashes = "{} {} {}".format(firstLen, gapLen, secondLen)
+            dashes = "0 {}".format(whole_len+2)
+        else:
+            start_len = arc_len(start_deg)
+            arc_len = arc_len(arc_deg)
+            off_len = whole_len - arc_len
+            offset = -start_len
+            dashes = "{} {}".format(arc_len, off_len)
         super().__init__(cx, cy, r, stroke_dasharray=dashes,
                          stroke_dashoffset=offset, **kwargs)
 
@@ -638,12 +637,12 @@ class Path(DrawingBasicElement):
     TAG_NAME = 'path'
     def __init__(self, d='', **kwargs):
         super().__init__(d=d, **kwargs)
-    def append(self, commandStr, *args):
+    def append(self, command_str, *args):
         if len(self.args['d']) > 0:
-            commandStr = ' ' + commandStr
+            command_str = ' ' + command_str
         if len(args) > 0:
-            commandStr = commandStr + ','.join(map(str, args))
-        self.args['d'] += commandStr
+            command_str = command_str + ','.join(map(str, args))
+        self.args['d'] += command_str
         return self
     def M(self, x, y): return self.append('M', x, -y)
     def m(self, dx, dy): return self.append('m', dx, -dy)
@@ -664,24 +663,24 @@ class Path(DrawingBasicElement):
     def q(self, cx, cy, ex, ey): return self.append('q', cx, -cy, ex, -ey)
     def T(self, ex, ey): return self.append('T', ex, -ey)
     def t(self, ex, ey): return self.append('t', ex, -ey)
-    def A(self, rx, ry, rot, largeArc, sweep, ex, ey):
-        return self.append('A', rx, ry, rot, int(bool(largeArc)),
+    def A(self, rx, ry, rot, large_arc, sweep, ex, ey):
+        return self.append('A', rx, ry, rot, int(bool(large_arc)),
                     int(bool(sweep)), ex, -ey)
-    def a(self, rx, ry, rot, largeArc, sweep, ex, ey):
-        return self.append('a', rx, ry, rot, int(bool(largeArc)),
+    def a(self, rx, ry, rot, large_arc, sweep, ex, ey):
+        return self.append('a', rx, ry, rot, int(bool(large_arc)),
                     int(bool(sweep)), ex, -ey)
-    def arc(self, cx, cy, r, startDeg, endDeg, cw=False, includeM=True,
-            includeL=False):
+    def arc(self, cx, cy, r, start_deg, end_deg, cw=False, include_m=True,
+            include_l=False):
         ''' Uses A() to draw a circular arc '''
-        largeArc = (endDeg - startDeg) % 360 > 180
-        startRad, endRad = startDeg*math.pi/180, endDeg*math.pi/180
-        sx, sy = r*math.cos(startRad), r*math.sin(startRad)
-        ex, ey = r*math.cos(endRad), r*math.sin(endRad)
-        if includeL:
+        large_arc = (end_deg - start_deg) % 360 > 180
+        start_rad, end_rad = start_deg*math.pi/180, end_deg*math.pi/180
+        sx, sy = r*math.cos(start_rad), r*math.sin(start_rad)
+        ex, ey = r*math.cos(end_rad), r*math.sin(end_rad)
+        if include_l:
             self.L(cx+sx, cy+sy)
-        elif includeM:
+        elif include_m:
             self.M(cx+sx, cy+sy)
-        return self.A(r, r, 0, largeArc ^ cw, cw, cx+ex, cy+ey)
+        return self.A(r, r, 0, large_arc ^ cw, cw, cx+ex, cy+ey)
 
 class Lines(Path):
     ''' A sequence of connected lines (or a polygon)
@@ -710,7 +709,7 @@ class Arc(Path):
 
         Additional keyword arguments are output as additional properties to the
         SVG node e.g. fill="red", stroke="#ff4477", stroke_width=2. '''
-    def __init__(self, cx, cy, r, startDeg, endDeg, cw=False, **kwargs):
+    def __init__(self, cx, cy, r, start_deg, end_deg, cw=False, **kwargs):
         super().__init__(d='', **kwargs)
-        self.arc(cx, cy, r, startDeg, endDeg, cw=cw, includeM=True)
+        self.arc(cx, cy, r, start_deg, end_deg, cw=cw, include_m=True)
 

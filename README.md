@@ -1,22 +1,22 @@
-# drawSvg
+# drawsvg 2.0
 
 A Python 3 library for programmatically generating SVG images (vector drawings) and rendering them or displaying them in a Jupyter notebook.
 
 Most common SVG tags are supported and others can easily be added by writing a small subclass of `DrawableBasicElement` or `DrawableParentElement`.
 
-An interactive [Jupyter notebook](https://jupyter.org) widget, `drawSvg.widgets.DrawingWidget`, is included that can update drawings based on mouse events.
+An interactive [Jupyter notebook](https://jupyter.org) widget, `drawsvg.widgets.DrawingWidget`, is included that can update drawings based on mouse events.
 
 # Install
 
-drawSvg is available on PyPI:
+drawsvg is available on PyPI:
 
 ```
-$ pip3 install drawSvg
+$ pip3 install drawsvg[all]
 ```
 
 ## Prerequisites
 
-Cairo needs to be installed separately. When Cairo is installed, drawSvg can output PNG or other image formats in addition to SVG. See platform-specific [instructions for Linux, Windows, and macOS from Cairo](https://www.cairographics.org/download/). Below are some examples for installing Cairo on Linux distributions and macOS.
+Cairo needs to be installed separately. When Cairo is installed, drawsvg can output PNG or other image formats in addition to SVG. See platform-specific [instructions for Linux, Windows, and macOS from Cairo](https://www.cairographics.org/download/). Below are some examples for installing Cairo on Linux distributions and macOS.
 
 **Ubuntu**
 
@@ -36,7 +36,7 @@ $ brew install cairo
 
 ### Basic drawing elements
 ```python
-import drawSvg as draw
+import drawsvg as draw
 
 d = draw.Drawing(200, 100, origin='center', displayInline=False)
 
@@ -99,11 +99,11 @@ d.rasterize()  # Display as PNG
 d  # Display as SVG
 ```
 
-[![Example output image](https://raw.githubusercontent.com/cduck/drawSvg/master/examples/example1.png)](https://github.com/cduck/drawSvg/blob/master/examples/example1.svg)
+[![Example output image](https://raw.githubusercontent.com/cduck/drawsvg/master/examples/example1.png)](https://github.com/cduck/drawsvg/blob/master/examples/example1.svg)
 
 ### Gradients
 ```python
-import drawSvg as draw
+import drawsvg as draw
 
 d = draw.Drawing(1.5, 0.8, origin='center')
 
@@ -141,11 +141,11 @@ d.setRenderSize(w=600)
 d
 ```
 
-[![Example output image](https://raw.githubusercontent.com/cduck/drawSvg/master/examples/example2.png)](https://github.com/cduck/drawSvg/blob/master/examples/example2.svg)
+[![Example output image](https://raw.githubusercontent.com/cduck/drawsvg/master/examples/example2.png)](https://github.com/cduck/drawsvg/blob/master/examples/example2.svg)
 
 ### Duplicate geometry and clip paths
 ```python
-import drawSvg as draw
+import drawsvg as draw
 
 d = draw.Drawing(1.4, 1.4, origin='center')
 
@@ -169,11 +169,11 @@ d.setRenderSize(400)
 d.rasterize()
 ```
 
-[![Example output image](https://raw.githubusercontent.com/cduck/drawSvg/master/examples/example3.png)](https://github.com/cduck/drawSvg/blob/master/examples/example3.svg)
+[![Example output image](https://raw.githubusercontent.com/cduck/drawsvg/master/examples/example3.png)](https://github.com/cduck/drawsvg/blob/master/examples/example3.svg)
 
 ### Implementing other SVG tags
 ```python
-import drawSvg as draw
+import drawsvg as draw
 
 # Subclass DrawingBasicElement if it cannot have child nodes
 # Subclass DrawingParentElement otherwise
@@ -201,11 +201,11 @@ d.setRenderSize(200)
 d
 ```
 
-[![Example output image](https://raw.githubusercontent.com/cduck/drawSvg/master/examples/example4.png)](https://github.com/cduck/drawSvg/blob/master/examples/example4.svg)
+[![Example output image](https://raw.githubusercontent.com/cduck/drawsvg/master/examples/example4.png)](https://github.com/cduck/drawsvg/blob/master/examples/example4.svg)
 
 ### Animation with the SVG Animate Tag
 ```python
-import drawSvg as draw
+import drawsvg as draw
 
 d = draw.Drawing(200, 200, origin='center')
 
@@ -243,12 +243,12 @@ d.saveSvg('animated.svg')  # Save to file
 d  # Display in Jupyter notebook
 ```
 
-[![Example output image](https://raw.githubusercontent.com/cduck/drawSvg/master/examples/animated-fix-github.svg?sanitize=true)](https://github.com/cduck/drawSvg/blob/master/examples/animated.svg)
+[![Example output image](https://raw.githubusercontent.com/cduck/drawsvg/master/examples/animated-fix-github.svg?sanitize=true)](https://github.com/cduck/drawsvg/blob/master/examples/animated.svg)
 
 ### Interactive Widget
 ```python
-import drawSvg as draw
-from drawSvg.widgets import DrawingWidget
+import drawsvg as draw
+from drawsvg.widgets import DrawingWidget
 import hyperbolic.poincare.shapes as hyper  # pip3 install hyperbolic
 
 # Create drawing
@@ -292,11 +292,11 @@ def mousemove(widget, x, y, info):
 widget
 ```
 
-![Example output image](https://raw.githubusercontent.com/cduck/drawSvg/master/examples/example5.gif)
+![Example output image](https://raw.githubusercontent.com/cduck/drawsvg/master/examples/example5.gif)
 
 ### Animation with Python
 ```python
-import drawSvg as draw
+import drawsvg as draw
 
 # Draw a frame of the animation
 def draw_frame(t):
@@ -322,13 +322,13 @@ with draw.animate_jupyter(draw_frame, delay=0.05) as anim:
         anim.draw_frame(i/10)
 ```
 
-![Example output image](https://raw.githubusercontent.com/cduck/drawSvg/master/examples/example6.gif)
+![Example output image](https://raw.githubusercontent.com/cduck/drawsvg/master/examples/example6.gif)
 
 ### Asynchronous Animation in Jupyter
 ```python
 # Jupyter cell 1:
-import drawSvg as draw
-from drawSvg.widgets import AsyncAnimation
+import drawsvg as draw
+from drawsvg.widgets import AsyncAnimation
 widget = AsyncAnimation(fps=10)
 widget
 # [Animation is displayed here (click to pause)]
@@ -347,4 +347,4 @@ def draw_frame(secs=0):
 global_variable = 'b'  # Animation above now displays 'b'
 ```
 
-![Example output image](https://raw.githubusercontent.com/cduck/drawSvg/master/examples/example7.gif)
+![Example output image](https://raw.githubusercontent.com/cduck/drawsvg/master/examples/example7.gif)

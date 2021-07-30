@@ -2,7 +2,9 @@ from setuptools import setup, find_packages
 import logging
 logger = logging.getLogger(__name__)
 
-version = '1.8.2'
+name = 'drawsvg'
+package_name = name
+version = '2.0.0'
 
 try:
     with open('README.md', 'r') as f:
@@ -12,7 +14,7 @@ except:
     long_desc = None
 
 setup(
-    name = 'drawSvg',
+    name = package_name,
     packages = find_packages(),
     version = version,
     description = 'A Python 3 library for programmatically generating SVG images (vector drawings) and rendering them or displaying them in a Jupyter notebook',
@@ -20,9 +22,11 @@ setup(
     long_description_content_type = 'text/markdown',
     author = 'Casey Duckering',
     #author_email = '',
-    url = 'https://github.com/cduck/drawSvg',
-    download_url = 'https://github.com/cduck/drawSvg/archive/{}.tar.gz'.format(version),
+    url = f'https://github.com/cduck/{name}',
+    download_url = f'https://github.com/cduck/{name}/archive/{version}.tar.gz',
     keywords = ['SVG', 'draw', 'graphics', 'iPython', 'Jupyter', 'widget'],
+    license_files = ('LICENSE.txt',),
+    license = 'MIT License',
     classifiers = [
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3',
@@ -30,9 +34,12 @@ setup(
         'Framework :: Jupyter',
     ],
     install_requires = [
-        'cairoSVG',
-        'numpy',
-        'imageio',
+        'numpy~=1.16',
+        'imageio~=2.5',
     ],
+    extras_require = {
+        'png': ['CairoSVG~=2.3'],
+        'all': ['CairoSVG~=2.3'],
+    },
 )
 

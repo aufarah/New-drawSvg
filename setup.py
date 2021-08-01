@@ -33,13 +33,9 @@ setup(
         'Framework :: IPython',
         'Framework :: Jupyter',
     ],
-    install_requires = [
-        'numpy~=1.16',
-        'imageio~=2.5',
-    ],
     extras_require = {
-        'png': ['CairoSVG~=2.3'],
-        'all': ['CairoSVG~=2.3'],
+        'raster': ['numpy~=1.16', 'imageio~=2.5', 'CairoSVG~=2.3'],
+        'color': ['pwkit~=1.0'],
+        'all': ['numpy~=1.16', 'imageio~=2.5', 'CairoSVG~=2.3', 'pwkit~=1.0'],
     },
 )
-

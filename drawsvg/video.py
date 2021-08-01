@@ -1,9 +1,22 @@
 """Video rendering functions used for frame-based animation."""
 
-import numpy as np
-import imageio
+import warnings
 
 from .drawing import Drawing
+from .missing import MissingModule
+
+try:
+    import numpy as np
+    import imageio
+except ImportError as e:
+    msg = (
+        'numpy, imageio, and CairoSVG will need to be installed to save '
+        'frame-based animations: Install with '
+        '`pip3 install drawsvg[raster]` or `pip3 install drawsvg[all]`\n'
+        'Original ImportError: {}'.format(e)
+    )
+    np = MissingModule(msg)
+    imageio = MissingModule(msg)
 
 
 def render_svg_frames(frames, align_bottom=False, align_right=False,

@@ -14,7 +14,6 @@ except OSError as e:
         'Original OSError: {}'.format(e)
     )
     cairosvg = MissingModule(msg)
-    warnings.warn(msg, RuntimeWarning)
 except ImportError as e:
     msg = (
         'CairoSVG will need to be installed to rasterize images: Install with '
@@ -22,7 +21,6 @@ except ImportError as e:
         'Original ImportError: {}'.format(e)
     )
     cairosvg = MissingModule(msg)
-    warnings.warn(msg, RuntimeWarning)
 
 
 class Raster:

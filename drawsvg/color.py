@@ -1,7 +1,23 @@
+"""Color space conversion classes.
+"""
 
 import math
-import numpy as np
-import pwkit.colormaps  # pip3 install pwkit
+import warnings
+
+from .missing import MissingModule
+
+try:
+    import numpy as np
+    import pwkit.colormaps
+except ImportError as e:
+    msg = (
+        'numpy and pwkit will need to be installed for Cielab color '
+        'conversions: Install with '
+        '`pip3 install drawsvg[color]` or `pip3 install drawsvg[all]`\n'
+        'Original ImportError: {}'.format(e)
+    )
+    pwkit = MissingModule(msg)
+    np = MissingModule(msg)
 
 
 # Most calculations from http://www.chilliant.com/rgb2hsv.html
@@ -48,7 +64,7 @@ class Hsl:
     def __str__(self):
         r, g, b = self.to_srgb()
         return 'rgb({}%,{}%,{}%)'.format(
-                round(r*100), round(g*100), round(b*100))
+                round(r*100, 2), round(g*100, 2), round(b*100, 2))
     def to_srgb(self):
         hs = Srgb.from_hue(self.h)
         c = (1 - abs(2 * self.l - 1)) * self.s
@@ -70,7 +86,7 @@ class Hsv:
     def __str__(self):
         r, g, b = self.to_srgb()
         return 'rgb({}%,{}%,{}%)'.format(
-                round(r*100), round(g*100), round(b*100))
+                round(r*100, 2), round(g*100, 2), round(b*100, 2))
     def to_srgb(self):
         hs = Srgb.from_hue(self.h)
         c = self.v * self.s
@@ -103,7 +119,7 @@ class Sin:
     def __str__(self):
         r, g, b = self.to_srgb()
         return 'rgb({}%,{}%,{}%)'.format(
-                round(r*100), round(g*100), round(b*100))
+                round(r*100, 2), round(g*100, 2), round(b*100, 2))
     def to_srgb(self):
         h = self.h
         scale = self.s / 2
@@ -126,7 +142,8 @@ class Hcy:
         return 'HCY({}, {}, {})'.format(self.h, self.c, self.y)
     def __str__(self):
         r, g, b = self.to_srgb()
-        return 'rgb({}%,{}%,{}%)'.format(r*100, g*100, b*100)
+        return 'rgb({}%,{}%,{}%)'.format(
+                round(r*100, 2), round(g*100, 2), round(b*100, 2))
     def to_srgb(self):
         hs = Srgb.from_hue(self.h)
         y = hs.luma(wts=self.HCY_WEIGHTS)
@@ -179,7 +196,7 @@ class Cielab:
     def __str__(self):
         r, g, b = self.to_srgb()
         return 'rgb({}%,{}%,{}%)'.format(
-                round(r*100), round(g*100), round(b*100))
+                round(r*100, 2), round(g*100, 2), round(b*100, 2))
     def to_srgb(self):
         in_arr = np.array((*self.l,), dtype=float)
         xyz = pwkit.colormaps.cielab_to_xyz(in_arr, self.REF_WHITE)

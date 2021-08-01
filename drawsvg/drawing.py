@@ -1,4 +1,3 @@
-
 from io import StringIO
 import base64
 import urllib.parse
@@ -14,10 +13,11 @@ STRIP_CHARS = ('\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11'
 
 
 class Drawing:
-    ''' A canvas to draw on
+    """A canvas for vector (SVG) drawings.
 
-        Supports iPython: If a Drawing is the last line of a cell, it will be
-        displayed as an SVG below. '''
+    Drawing supports iPython: If a Drawing is the last line of a Jupyter
+    notebook cell, it will be displayed inline.
+    """
     def __init__(self, width, height, origin=(0,0), id_prefix='d',
                  display_inline=True, **svg_args):
         assert float(width) == width
@@ -110,7 +110,7 @@ class Drawing:
     def append_def(self, element):
         self.other_defs.append(element)
     def all_elements(self):
-        ''' Returns self.elements and self.ordered_elements as a single list. '''
+        """Returns self.elements and self.ordered_elements as a single list."""
         output = list(self.elements)
         for z in sorted(self.ordered_elements):
             output.extend(self.ordered_elements[z])
@@ -126,7 +126,7 @@ class Drawing:
             img_width, img_height, *self.view_box)
         end_str = '</svg>'
         output_file.write(start_str)
-        elements_module.write_xml_node_args(self.svg_args, output_file)
+        elements_module._write_xml_node_args(self.svg_args, output_file)
         output_file.write('>\n<defs>\n')
         # Write definition elements
         def id_gen(base=''):
@@ -184,12 +184,12 @@ class Drawing:
         else:
             return Raster.from_svg(self.as_svg())
     def _repr_svg_(self):
-        ''' Display in Jupyter notebook '''
+        """Display in Jupyter notebook."""
         if not self.display_inline:
             return None
         return self.as_svg()
     def _repr_html_(self):
-        ''' Display in Jupyter notebook '''
+        """Display in Jupyter notebook."""
         if self.display_inline:
             return None
         prefix = b'data:image/svg+xml;base64,'
@@ -197,19 +197,20 @@ class Drawing:
         src = (prefix+data).decode()
         return '<img src="{}">'.format(src)
     def as_data_uri(self, strip_chars=STRIP_CHARS):
-        ''' Returns a data URI with base64 encoding. '''
+        """Returns a data URI with base64 encoding."""
         data = self.as_svg()
         search = re.compile('|'.join(strip_chars))
         data_safe = search.sub(lambda m: '', data)
         b64 = base64.b64encode(data_safe.encode())
         return 'data:image/svg+xml;base64,' + b64.decode(encoding='ascii')
     def as_utf8_data_uri(self, unsafe_chars='"', strip_chars=STRIP_CHARS):
-        ''' Returns a data URI without base64 encoding.
+        """Returns a data URI without base64 encoding.
 
-            The characters '#&%' are always escaped.  '#' and '&' break parsing
-            of the data URI.  If '%' is not escaped, plain text like '%50' will
-            be incorrectly decoded to 'P'.  The characters in `strip_chars`
-            cause the SVG not to render even if they are escaped. '''
+        The characters '#&%' are always escaped.  '#' and '&' break parsing of
+        the data URI.  If '%' is not escaped, plain text like '%50' will be
+        incorrectly decoded to 'P'.  The characters in `strip_chars` cause the
+        SVG not to render even if they are escaped.
+        """
         data = self.as_svg()
         unsafe_chars = (unsafe_chars or '') + '#&%'
         replacements = {

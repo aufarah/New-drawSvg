@@ -200,4 +200,3 @@ class Cielab:
         lin_srgb = pwkit.colormaps.xyz_to_linsrgb(xyz)
         r, g, b = pwkit.colormaps.linsrgb_to_srgb(lin_srgb)
         return Srgb(r, g, b)
-

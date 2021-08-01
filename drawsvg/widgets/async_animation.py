@@ -1,3 +1,5 @@
+"""Live animation in Jupyter."""
+
 import time
 
 from ..drawing import Drawing
@@ -5,8 +7,23 @@ from .drawing_widget import DrawingWidget
 
 
 class AsyncAnimation(DrawingWidget):
-    '''AsyncAnimation is a Jupyter notebook widget for asynchronously displaying
+    """AsyncAnimation is a Jupyter notebook widget for asynchronously displaying
     an animation.
+
+    Attributes:
+        fps: The animation frame rate (frames per second).
+        draw_frame: A function that takes a single argument (animation time) and
+            returns a Drawing.
+        paused: While True, the animation will not run.  Only the current frame
+            will be shown.
+        disable: While True, the widget will not be interactive and the
+            animation will not update.
+        click_pause: If True, clicking the drawing will pause or resume the
+            animation.
+        mousemove_pause: If True, moving the mouse up across the drawing will
+            pause the animation and moving the mouse down will resume it.
+        mousemove_y_threshold: Controls the sensitivity of mousemove_pause in
+            web browser pixels.
 
     Example:
         # Jupyter cell 1:
@@ -26,22 +43,7 @@ class AsyncAnimation(DrawingWidget):
 
         # Jupyter cell 3:
         global_variable = 'b'  # Animation above now displays 'b'
-
-    Attributes:
-        fps: The animation frame rate (frames per second).
-        draw_frame: A function that takes a single argument (animation time) and
-            returns a Drawing.
-        paused: While True, the animation will not run.  Only the current frame
-            will be shown.
-        disable: While True, the widget will not be interactive and the
-            animation will not update.
-        click_pause: If True, clicking the drawing will pause or resume the
-            animation.
-        mousemove_pause: If True, moving the mouse up across the drawing will
-            pause the animation and moving the mouse down will resume it.
-        mousemove_y_threshold: Controls the sensitivity of mousemove_pause in
-            web browser pixels.
-    '''
+    """
 
     def __init__(self, fps=10, draw_frame=None, *, paused=False, disable=False,
                  click_pause=True, mousemove_pause=False,

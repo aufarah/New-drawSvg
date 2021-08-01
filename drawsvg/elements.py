@@ -1,3 +1,4 @@
+"""SVG element definitions."""
 
 import sys
 import math
@@ -12,7 +13,7 @@ from . import defs
 elements_module = sys.modules[__name__]
 
 
-def write_xml_node_args(args, output_file):
+def _write_xml_node_args(args, output_file):
     for k, v in args.items():
         if v is None: continue
         if isinstance(v, DrawingElement):
@@ -26,9 +27,10 @@ def write_xml_node_args(args, output_file):
 
 
 class DrawingElement:
-    ''' Base class for drawing elements
+    """Abstract base class for SVG drawing elements.
 
-        Subclasses must implement write_svg_element '''
+    Subclasses must implement write_svg_element.
+    """
     def write_svg_element(self, id_gen, is_duplicate, output_file, dry_run,
                           force_dup=False):
         raise NotImplementedError('Abstract base class')
@@ -50,8 +52,8 @@ class DrawingElement:
         return self is other
 
 class DrawingBasicElement(DrawingElement):
-    ''' Base class for SVG drawing elements that are a single node with no
-        child nodes '''
+    """Base class for SVG drawing elements that are a single node with no child
+    nodes."""
     TAG_NAME = '_'
     has_content = False
     def __init__(self, **args):
@@ -69,7 +71,7 @@ class DrawingBasicElement(DrawingElement):
             raise RuntimeError(
                 '{} does not support children'.format(type(self)))
     def all_children(self):
-        ''' Returns self.children and self.ordered_children as a single list. '''
+        """Returns self.children and self.ordered_children as a single list."""
         output = list(self.children)
         for z in sorted(self.ordered_children):
             output.extend(self.ordered_children[z])
@@ -100,7 +102,7 @@ class DrawingBasicElement(DrawingElement):
             return
         output_file.write('<')
         output_file.write(self.TAG_NAME)
-        write_xml_node_args(self.args, output_file)
+        _write_xml_node_args(self.args, output_file)
         if not self.has_content and not children:
             output_file.write(' />')
         else:
@@ -114,13 +116,17 @@ class DrawingBasicElement(DrawingElement):
             output_file.write(self.TAG_NAME)
             output_file.write('>')
     def write_content(self, id_gen, is_duplicate, output_file, dry_run):
-        ''' Override in a subclass to add data between the start and end
-            tags.  This will not be called if has_content is False. '''
+        """Override in a subclass to add data between the start and end tags.
+
+        This will not be called if has_content is False.
+        """
         raise RuntimeError('This element has no content')
     def write_children_content(self, id_gen, is_duplicate, output_file,
                                dry_run):
-        ''' Override in a subclass to add data between the start and end
-            tags.  This will not be called if has_content is False. '''
+        """Override in a subclass to add data between the start and end tags.
+
+        This will not be called if has_content is False.
+        """
         children = self.all_children()
         if dry_run:
             for child in children:
@@ -150,10 +156,14 @@ class DrawingBasicElement(DrawingElement):
     def extend_anim(self, animate_iterable):
         self.children.extend(animate_iterable)
     def append_title(self, text, **kwargs):
+        """Adds a tooltip or hover text.
+
+        See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/title
+        """
         self.children.append(Title(text, **kwargs))
 
 class DrawingParentElement(DrawingBasicElement):
-    ''' Base class for SVG elements that can have child nodes '''
+    """Base class for SVG elements that can have child nodes."""
     has_content = True
     def __init__(self, children=(), ordered_children=None, **args):
         super().__init__(**args)
@@ -188,7 +198,7 @@ class DrawingParentElement(DrawingBasicElement):
         pass
 
 class NoElement(DrawingElement):
-    ''' A drawing element that has no effect '''
+    """A drawing element that has no effect."""
     def __init__(self): pass
     def write_svg_element(self, id_gen, is_duplicate, output_file, dry_run,
                           force_dup=False):
@@ -199,14 +209,17 @@ class NoElement(DrawingElement):
         return False
 
 class Group(DrawingParentElement):
-    ''' A group of drawing elements
+    """A group of drawing elements
 
-        Any transform will apply to its children and other attributes will be
-        inherited by its children. '''
+    Any transform will apply to its children and certain attributes will be
+    inherited by its children.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/g
+    """
     TAG_NAME = 'g'
 
 class Raw(Group):
-    ''' Any any SVG code to insert into the output. '''
+    """Any raw SVG code to insert into the output."""
     def __init__(self, content, defs=(), **kwargs):
         super().__init__(**kwargs)
         self.content = content
@@ -219,10 +232,13 @@ class Raw(Group):
         return self.defs
 
 class Use(DrawingBasicElement):
-    ''' A copy of another element
+    """A duplicate of another element drawn at a different location.
 
-        The other element becomes an SVG def shared between all Use elements
-        that reference it. '''
+    The other element becomes an SVG def shared between all Use elements that
+    reference it.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/use
+    """
     TAG_NAME = 'use'
     def __init__(self, other_elem, x, y, **kwargs):
         y = -y
@@ -231,11 +247,13 @@ class Use(DrawingBasicElement):
         super().__init__(xlink__href=other_elem, x=x, y=y, **kwargs)
 
 class Animate(DrawingBasicElement):
-    ''' Animation for a specific property of another element
+    """SVG-native animation of a specific property of another element.
 
-        This should be added as a child of the element to animate.  Otherwise
-        the other element and this element must both be added to the drawing.
-    '''
+    This should be added as a child of the element to animate.  Otherwise, the
+    other element and this element must both be added to the drawing.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/animate
+    """
     TAG_NAME = 'animate'
     def __init__(self, attributeName, dur, from_or_values=None, to=None,
                  begin=None, other_elem=None, **kwargs):
@@ -262,17 +280,21 @@ class Animate(DrawingBasicElement):
         return (self.args['xlink:href'],)
 
 class _Mpath(DrawingBasicElement):
-    ''' Used by AnimateMotion '''
+    """Child element of AnimateMotion."""
     TAG_NAME = 'mpath'
     def __init__(self, other_path, **kwargs):
         super().__init__(xlink__href=other_path, **kwargs)
 
 class AnimateMotion(Animate):
-    ''' Animation for the motion another element along a path
+    """SVG-native animation of the motion of another element along a defined
+    path.
 
-        This should be added as a child of the element to animate.  Otherwise
-        the other element and this element must both be added to the drawing.
-    '''
+    This should be added as a child of the element to animate.  Otherwise, the
+    other element and this element must both be added to the drawing.
+
+    See also:
+    https://developer.mozilla.org/en-US/docs/Web/SVG/Element/animateMotion
+    """
     TAG_NAME = 'animateMotion'
     def __init__(self, path, dur, from_or_values=None, to=None, begin=None,
                  other_elem=None, **kwargs):
@@ -289,11 +311,14 @@ class AnimateMotion(Animate):
             self.children.append(_Mpath(path_elem))
 
 class AnimateTransform(Animate):
-    ''' Animation for the transform property of another element
+    """SVG-native animation of the transform property of another element.
 
-        This should be added as a child of the element to animate.  Otherwise
-        the other element and this element must both be added to the drawing.
-    '''
+    This should be added as a child of the element to animate.  Otherwise, the
+    other element and this element must both be added to the drawing.
+
+    See also:
+    https://developer.mozilla.org/en-US/docs/Web/SVG/Element/animateTransform
+    """
     TAG_NAME = 'animateTransform'
     def __init__(self, type, dur, from_or_values, to=None, begin=None,
                  attributeName='transform', other_elem=None, **kwargs):
@@ -302,12 +327,14 @@ class AnimateTransform(Animate):
                          **kwargs)
 
 class Set(Animate):
-    ''' Animation for a specific property of another element that sets the new
-        value without a transition.
+    """SVG-native animation for a specific property of another element that sets
+    the new value without a transition.
 
-        This should be added as a child of the element to animate.  Otherwise
-        the other element and this element must both be added to the drawing.
-    '''
+    This should be added as a child of the element to animate.  Otherwise, the
+    other element and this element must both be added to the drawing.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/set
+    """
     TAG_NAME = 'set'
     def __init__(self, attributeName, dur, to=None, begin=None,
                  other_elem=None, **kwargs):
@@ -315,12 +342,16 @@ class Set(Animate):
                          to=to, begin=begin, other_elem=other_elem, **kwargs)
 
 class Discard(Animate):
-    ''' Animation configuration specifying when it is safe to discard another
-        element.  E.g. when it will no longer be visible after an animation.
+    """SVG-native animation configuration specifying when it is safe to discard
+    another element.
 
-        This should be added as a child of the element to animate.  Otherwise
-        the other element and this element must both be added to the drawing.
-    '''
+    E.g. when it will no longer be visible after an animation.
+
+    This should be added as a child of the element to animate.  Otherwise, the
+    other element and this element must both be added to the drawing.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/discard
+    """
     TAG_NAME = 'discard'
     def __init__(self, attributeName, begin=None, **kwargs):
         kwargs.setdefault('attributeName', None)
@@ -330,7 +361,10 @@ class Discard(Animate):
                          **kwargs)
 
 class Image(DrawingBasicElement):
-    ''' A linked or embedded raster image '''
+    """A linked or embedded raster image.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/image
+    """
     TAG_NAME = 'image'
     MIME_MAP = {
         '.bm':  'image/bmp',
@@ -348,8 +382,10 @@ class Image(DrawingBasicElement):
     MIME_DEFAULT = 'image/png'
     def __init__(self, x, y, width, height, path=None, data=None, embed=False,
                  mime_type=None, **kwargs):
-        ''' Specify either the path or data argument.  If path is used and
-            embed is True, the image file is embedded in a data URI. '''
+        """
+        Specify either the path or data argument.  If path is used and
+        embed is True, the image file is embedded in a data URI.
+        """
         if path is None and data is None:
             raise ValueError('Either path or data arguments must be given')
         if embed:
@@ -378,14 +414,17 @@ class Image(DrawingBasicElement):
                          xlink__href=uri, **kwargs)
 
 class Text(DrawingParentElement):
-    ''' Text
+    """Text element.
 
-        Additional keyword arguments are output as additional arguments to the
-        SVG node e.g. fill='red', font_size=20, text_anchor='middle',
-        letter_spacing=1.5.
+    Additional keyword arguments are output as additional arguments to the SVG
+    node e.g. fill='red', font_size=20, text_anchor='middle',
+    letter_spacing=1.5.
 
-        CairoSVG bug with letter spacing text on a path: The first two letters
-        are always spaced as if letter_spacing=1. '''
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
+
+    Note: There is a CairoSVG bug with letter spacing text on a path.  The first
+        two letters are always spaced as if letter_spacing=1.
+    """
     TAG_NAME = 'text'
     has_content = True
     def __new__(cls, text, *args, path=None, id=None, _skip_check=False,
@@ -511,8 +550,6 @@ class Text(DrawingParentElement):
         output_file.write(self.escaped_text)
     def write_children_content(self, id_gen, is_duplicate, output_file,
                                dry_run):
-        ''' Override in a subclass to add data between the start and end
-            tags.  This will not be called if has_content is False. '''
         children = self.all_children()
         if dry_run:
             for child in children:
@@ -527,14 +564,18 @@ class Text(DrawingParentElement):
         self.append(TSpan(line, **kwargs))
 
 class _TextPath(DrawingParentElement):
+    """Child element of <text> used for text drawn along a path.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/textPath
+    """
     TAG_NAME = 'textPath'
     has_content = True
     def __init__(self, path, **kwargs):
         super().__init__(xlink__href=path, **kwargs)
 
 class _TextContainingElement(DrawingBasicElement):
-    ''' A private parent class used for elements that only have plain text
-        content. '''
+    """A private parent class used for elements that only have plain text
+    content."""
     has_content = True
     def __init__(self, text, **kwargs):
         super().__init__(**kwargs)
@@ -545,23 +586,30 @@ class _TextContainingElement(DrawingBasicElement):
         output_file.write(self.escaped_text)
 
 class TSpan(_TextContainingElement):
-    ''' A line of text within the Text element. '''
+    """Child element of <text> containing a single line of text.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/tspan
+    """
     TAG_NAME = 'tspan'
 
 class Title(_TextContainingElement):
-    ''' A title element.
+    """A title element.
 
-        This element can be appended with shape.append_title("Your title!"),
-        which can be useful for adding a tooltip or on-hover text display
-        to an element.
-    '''
+    This element can be appended with shape.append_title('Your title!'), which
+    can be useful for adding a tooltip or on-hover text display to an element.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/title
+    """
     TAG_NAME = 'title'
 
 class Rectangle(DrawingBasicElement):
-    ''' A rectangle
+    """A rectangle.
 
-        Additional keyword arguments are output as additional arguments to the
-        SVG node e.g. fill="red", stroke="#ff4477", stroke_width=2. '''
+    Additional keyword arguments are output as additional arguments to the SVG
+    node e.g. fill='red', stroke='#ff4477', stroke_width=2.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/rect
+    """
     TAG_NAME = 'rect'
     def __init__(self, x, y, width, height, **kwargs):
         try:
@@ -572,10 +620,13 @@ class Rectangle(DrawingBasicElement):
             **kwargs)
 
 class Circle(DrawingBasicElement):
-    ''' A circle
+    """A circle.
 
-        Additional keyword arguments are output as additional properties to the
-        SVG node e.g. fill="red", stroke="#ff4477", stroke_width=2. '''
+    Additional keyword arguments are output as additional properties to the SVG
+    node e.g. fill='red', stroke='#ff4477', stroke_width=2.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/circle
+    """
     TAG_NAME = 'circle'
     def __init__(self, cx, cy, r, **kwargs):
         try:
@@ -585,10 +636,13 @@ class Circle(DrawingBasicElement):
         super().__init__(cx=cx, cy=cy, r=r, **kwargs)
 
 class Ellipse(DrawingBasicElement):
-    ''' An ellipse
+    """An ellipse.
 
-        Additional keyword arguments are output as additional properties to the
-        SVG node e.g. fill="red", stroke="#ff4477", stroke_width=2. '''
+    Additional keyword arguments are output as additional properties to the SVG
+    node e.g. fill='red', stroke='#ff4477', stroke_width=2.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/ellipse
+    """
     TAG_NAME = 'ellipse'
     def __init__(self, cx, cy, rx, ry, **kwargs):
         try:
@@ -598,14 +652,16 @@ class Ellipse(DrawingBasicElement):
         super().__init__(cx=cx, cy=cy, rx=rx, ry=ry, **kwargs)
 
 class ArcLine(Circle):
-    ''' An arc
+    """An arc.
 
-        In most cases, use Arc instead of ArcLine.  ArcLine uses the
-        stroke-dasharray SVG property to make the edge of a circle look like
-        an arc.
+    In most cases, use Arc instead of ArcLine.  ArcLine uses the
+    stroke-dasharray SVG property to make the edge of a circle look like an arc.
 
-        Additional keyword arguments are output as additional arguments to the
-        SVG node e.g. fill="red", stroke="#ff4477", stroke_width=2. '''
+    Additional keyword arguments are output as additional arguments to the SVG
+    node e.g. fill='red', stroke='#ff4477', stroke_width=2.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/circle
+    """
     def __init__(self, cx, cy, r, start_deg, end_deg, **kwargs):
         if end_deg - start_deg == 360:
             super().__init__(cx, cy, r, **kwargs)
@@ -616,24 +672,30 @@ class ArcLine(Circle):
         whole_len = 2 * math.pi * r
         if end_deg == start_deg:
             offset = 1
-            dashes = "0 {}".format(whole_len+2)
+            dashes = '0 {}'.format(whole_len+2)
         else:
             start_len = arc_len(start_deg)
             arc_len = arc_len(arc_deg)
             off_len = whole_len - arc_len
             offset = -start_len
-            dashes = "{} {}".format(arc_len, off_len)
+            dashes = '{} {}'.format(arc_len, off_len)
         super().__init__(cx, cy, r, stroke_dasharray=dashes,
                          stroke_dashoffset=offset, **kwargs)
 
 class Path(DrawingBasicElement):
-    ''' An arbitrary path
+    """An arbitrary path.
 
-        Path Supports building an SVG path by calling instance methods
-        corresponding to path commands.
+    Path supports building an SVG path by calling methods corresponding
+    to path commands.
 
-        Additional keyword arguments are output as additional properties to the
-        SVG node e.g. fill="red", stroke="#ff4477", stroke_width=2. '''
+    Additional keyword arguments are output as additional properties to the
+    SVG node e.g. fill='red', stroke='#ff4477', stroke_width=2.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/path
+
+    Example:
+        Path().M(0, 0).L(3, 0).L(3, 4).Z()
+    """
     TAG_NAME = 'path'
     def __init__(self, d='', **kwargs):
         super().__init__(d=d, **kwargs)
@@ -671,7 +733,7 @@ class Path(DrawingBasicElement):
                     int(bool(sweep)), ex, -ey)
     def arc(self, cx, cy, r, start_deg, end_deg, cw=False, include_m=True,
             include_l=False):
-        ''' Uses A() to draw a circular arc '''
+        """Draws a circular arc using the 'A' command."""
         large_arc = (end_deg - start_deg) % 360 > 180
         start_rad, end_rad = start_deg*math.pi/180, end_deg*math.pi/180
         sx, sy = r*math.cos(start_rad), r*math.sin(start_rad)
@@ -683,10 +745,13 @@ class Path(DrawingBasicElement):
         return self.A(r, r, 0, large_arc ^ cw, cw, cx+ex, cy+ey)
 
 class Lines(Path):
-    ''' A sequence of connected lines (or a polygon)
+    """A sequence of connected lines (or a polygon)
 
-        Additional keyword arguments are output as additional properties to the
-        SVG node e.g. fill="red", stroke="#ff4477", stroke_width=2. '''
+    Additional keyword arguments are output as additional properties to the SVG
+    node e.g. fill='red', stroke='#ff4477', stroke_width=2.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/path
+    """
     def __init__(self, sx, sy, *points, close=False, **kwargs):
         super().__init__(d='', **kwargs)
         self.M(sx, sy)
@@ -697,19 +762,24 @@ class Lines(Path):
             self.Z()
 
 class Line(Lines):
-    ''' A line
+    """A line.
 
-        Additional keyword arguments are output as additional properties to the
-        SVG node e.g. fill="red", stroke="#ff4477", stroke_width=2. '''
+    Additional keyword arguments are output as additional properties to the SVG
+    node e.g. fill='red', stroke='#ff4477', stroke_width=2.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/path
+    """
     def __init__(self, sx, sy, ex, ey, **kwargs):
         super().__init__(sx, sy, ex, ey, close=False, **kwargs)
 
 class Arc(Path):
-    ''' An arc
+    """An arc.
 
-        Additional keyword arguments are output as additional properties to the
-        SVG node e.g. fill="red", stroke="#ff4477", stroke_width=2. '''
+    Additional keyword arguments are output as additional properties to the SVG
+    node e.g. fill='red', stroke='#ff4477', stroke_width=2.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/path
+    """
     def __init__(self, cx, cy, r, start_deg, end_deg, cw=False, **kwargs):
         super().__init__(d='', **kwargs)
         self.arc(cx, cy, r, start_deg, end_deg, cw=cw, include_m=True)
-

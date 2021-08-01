@@ -1,9 +1,7 @@
-'''
-A library for creating SVG files or just drawings that can be displayed in
-iPython notebooks
+"""A library for creating SVG files or just drawings that can be displayed in
+iPython notebooks.
 
 Example:
-```
     d = draw.Drawing(200, 100, origin='center')
 
     d.append(draw.Lines(-80, -45,
@@ -41,8 +39,7 @@ Example:
     # Display in iPython notebook
     d.rasterize()  # Display as PNG
     d  # Display as SVG
-```
-'''
+"""
 
 from .defs import *
 from .raster import Raster
@@ -69,4 +66,3 @@ for k in dir(defs):
     if k.startswith('_'): continue
     if k in elements_dir: continue
     register_element(k, getattr(defs, k))
-

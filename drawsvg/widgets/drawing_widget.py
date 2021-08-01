@@ -1,3 +1,5 @@
+"""Interactive drawings in Jupyter."""
+
 from ipywidgets import widgets
 from traitlets import Unicode, Bool, Int
 
@@ -10,6 +12,22 @@ del drawing_javascript
 
 
 class DrawingWidget(widgets.DOMWidget):
+    """An interactive Jupyter notebook widget for drawings.
+
+    DrawingWidget works similarly to displaying a Drawing as a cell output but
+    it can register callbacks for user mouse events.  Within a callback modify
+    the drawing then call .refresh() to update the output in real time.
+
+    Attributes:
+        drawing: The initial Drawing to display.  Call .refresh() after
+            modifying the current drawing or simply assign a new Drawing.
+        throttle: If True, limit the rate of mousemove events.  For drawings
+            with many elements, this will significantly reduce lag.
+        disable: While True, mouse events will be disabled.
+        frame_delay: If greater than or equal to zero, a timed callback will
+            occur frame_delay milliseconds after the previous drawing
+            update.
+    """
     _view_name = Unicode('DrawingView').tag(sync=True)
     _view_module = Unicode('drawingview').tag(sync=True)
     _view_module_version = Unicode('0.1.0').tag(sync=True)
@@ -21,22 +39,6 @@ class DrawingWidget(widgets.DOMWidget):
     frame_delay = Int(-1).tag(sync=True)
 
     def __init__(self, drawing, throttle=True, disable=False, frame_delay=-1):
-        '''
-        DrawingWidget is an interactive Jupyter notebook widget.  It works
-        similarly to displaying a Drawing as a cell output but DrawingWidget
-        can register callbacks for user mouse events.  Within a callback modify
-        the drawing then call .refresh() to update the output in real time.
-
-        Arguments:
-            drawing: The initial Drawing to display.  Call .refresh() after
-                modifying or just assign a new Drawing.
-            throttle: If True, limit the rate of mousemove events.  For drawings
-                with many elements, this will significantly reduce lag.
-            disable: While True, mouse events will be disabled.
-            frame_delay: If greater than or equal to zero, a timed callback will
-                occur frame_delay milliseconds after the previous drawing
-                update.
-        '''
         super().__init__()
         self.throttle = throttle
         self.disable = disable
@@ -60,9 +62,8 @@ class DrawingWidget(widgets.DOMWidget):
         self.refresh()
 
     def refresh(self):
-        '''
-        Redraw the displayed output with the current value of self.drawing.
-        '''
+        """Redraws the displayed output with the current value of self.drawing.
+        """
         self._image = self.drawing.as_svg()
 
     def _receive_msg(self, _, content, buffers):
@@ -97,55 +98,55 @@ class DrawingWidget(widgets.DOMWidget):
 
 
     def mousedown(self, handler, remove=False):
-        '''
-        Register (or unregister) a handler for the mousedown event.
+        """Registers (or unregisters) a handler for the mousedown event.
 
-        Arguments:
+        Args:
+            handler: The function to be called on mousedown.
             remove: If True, unregister, otherwise register.
-        '''
+        """
         self.on_msg
         self._register_handler(
             self.mousedown_callbacks, handler, remove=remove)
 
     def mousemove(self, handler, remove=False):
-        '''
-        Register (or unregister) a handler for the mousemove event.
+        """Registers (or unregisters) a handler for the mousemove event.
 
-        Arguments:
+        Args:
+            handler: The function to be called on mousemove.
             remove: If True, unregister, otherwise register.
-        '''
+        """
         self._register_handler(
             self.mousemove_callbacks, handler, remove=remove)
 
     def mouseup(self, handler, remove=False):
-        '''
-        Register (or unregister) a handler for the mouseup event.
+        """Registers (or unregisters) a handler for the mouseup event.
 
-        Arguments:
+        Args:
+            handler: The function to be called on mouseup.
             remove: If True, unregister, otherwise register.
-        '''
+        """
         self._register_handler(
             self.mouseup_callbacks, handler, remove=remove)
 
     def timed(self, handler, remove=False):
-        '''
-        Register (or unregister) a handler for the timed event.
+        """Registers (or unregisters) a handler for the timed event.
 
-        Arguments:
+        Args:
+            handler: The function to be called periodically.
             remove: If True, unregister, otherwise register.
-        '''
+        """
         self._register_handler(
             self.timed_callbacks, handler, remove=remove)
 
     def on_exception(self, handler, remove=False):
-        '''
-        Register (or unregister) a handler for exceptions in other handlers.
+        """Registers (or unregisters) a handler for exceptions in other handlers.
 
         If any handler returns True, the exception is suppressed.
 
-        Arguments:
+        Args:
+            handler: The function to be called on an exception.
             remove: If True, unregister, otherwise register.
-        '''
+        """
         self._register_handler(
             self.exception_callbacks, handler, remove=remove)
 

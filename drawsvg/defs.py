@@ -1,20 +1,28 @@
+"""SVG element definitions that are intended to go between the <defs></defs>
+tag.
+"""
 
 from .elements import DrawingElement, DrawingParentElement
 
 
 class DrawingDef(DrawingParentElement):
-    ''' Parent class of SVG nodes that must be direct children of <defs> '''
+    """Parent class of SVG nodes that must be direct children of <defs>."""
     def get_svg_defs(self):
         return (self,)
 
 class DrawingDefSub(DrawingParentElement):
-    ''' Parent class of SVG nodes that are meant to be descendants of a def '''
+    """Parent class of SVG nodes that are meant to be descendants of a def
+    element."""
     pass
 
 class LinearGradient(DrawingDef):
-    ''' A linear gradient to use as a fill or other color
+    """A linear gradient to use as a fill or other color.
 
-        Has <stop> nodes as children. '''
+    Has <stop> nodes as children.
+
+    See also:
+    https://developer.mozilla.org/en-US/docs/Web/SVG/Element/linearGradient
+    """
     TAG_NAME = 'linearGradient'
     def __init__(self, x1, y1, x2, y2, gradientUnits='userSpaceOnUse',
                  **kwargs):
@@ -31,11 +39,16 @@ class LinearGradient(DrawingDef):
         stop = GradientStop(offset=offset, stop_color=color,
                             stop_opacity=opacity, **kwargs)
         self.append(stop)
+        return stop
 
 class RadialGradient(DrawingDef):
-    ''' A radial gradient to use as a fill or other color
+    """A radial gradient to use as a fill or other color.
 
-        Has <stop> nodes as children. '''
+    Has <stop> nodes as children.
+
+    See also:
+    https://developer.mozilla.org/en-US/docs/Web/SVG/Element/radialGradient
+    """
     TAG_NAME = 'radialGradient'
     def __init__(self, cx, cy, r, gradientUnits='userSpaceOnUse', fy=None,
                  **kwargs):
@@ -54,43 +67,61 @@ class RadialGradient(DrawingDef):
         self.append(stop)
 
 class GradientStop(DrawingDefSub):
-    ''' A control point for a radial or linear gradient '''
+    """A control point for a radial or linear gradient.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/stop
+    """
     TAG_NAME = 'stop'
     has_content = False
 
 class ClipPath(DrawingDef):
-    ''' A shape used to crop another element by not drawing outside of this
-        shape
+    """A shape used to crop another element by not drawing outside of this
+    shape.
 
-        Has regular drawing elements as children. '''
+    Has regular drawing elements as children.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/clipPath
+    """
     TAG_NAME = 'clipPath'
 
 class Mask(DrawingDef):
-    ''' A drawing where the gray value and transparency are used to control the
-        transparency of another shape.
+    """A drawing where the gray value and transparency are used to control the
+    transparency of another shape.
 
-        Has regular drawing elements as children. '''
+    Has regular drawing elements as children.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/mask
+    """
     TAG_NAME = 'mask'
 
 class Filter(DrawingDef):
-    ''' A filter to apply to geometry
+    """A filter to apply to geometry.
 
-        For example a blur filter. '''
+    For example a blur filter.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/filter
+    """
     TAG_NAME = 'filter'
 
 class FilterItem(DrawingDefSub):
-    ''' A child of Filter with any tag name'''
-    has_content = False
+    """A child of Filter with any tag name.
+
+    See also:
+    https://developer.mozilla.org/en-US/docs/Web/SVG/Element#filter_primitive_elements
+    """
     def __init__(self, tag_name, **args):
         super().__init__(**args)
         self.TAG_NAME = tag_name
 
 class Marker(DrawingDef):
-    ''' A small drawing that can be placed at the ends of (or along) a path.
+    """A small drawing that can be placed at the ends of (or along) a path.
 
-        This can be used for arrow heads or points on a graph for example.
+    This can be used for arrow heads or points on a graph for example.
 
-        By default, units are multiples of stroke width.'''
+    By default, units are multiples of stroke width.
+
+    See also: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/marker
+    """
     TAG_NAME = 'marker'
     def __init__(self, minx, miny, maxx, maxy, scale=1, orient='auto',
                  **kwargs):

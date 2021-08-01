@@ -1,3 +1,5 @@
+"""Video rendering functions used for frame-based animation."""
+
 import numpy as np
 import imageio
 
@@ -28,24 +30,23 @@ def render_svg_frames(frames, align_bottom=False, align_right=False,
     return list(map(mod_frame, arr_frames))
 
 def save_video(frames, file, **kwargs):
-    '''
-    Save a series of drawings as a GIF or video.
+    """Save a series of drawings as a GIF or video.
 
-    Arguments:
+    Args:
         frames: A list of `Drawing`s or a list of `numpy.array`s.
-        file: File name or file like object to write the video to.  The
+        file: File name or file-like object to write the video to.  The
             extension determines the output format.
         align_bottom: If frames are different sizes, align the bottoms of each
-            frame in the video.
+            frame in the video.  Default: False.
         align_right: If frames are different sizes, align the right edge of each
-            frame in the video.
+            frame in the video.  Default: False.
         bg: If frames are different sizes, fill the background with this color.
-            (default is white: (255, 255, 255, 255))
-        duration: If writing a GIF, sets the duration of each frame.
-        fps: If writing a video, sets the frame rate in FPS.
+            Default: white (255, 255, 255, 255).
+        fps: The animation speed in frames per second.
         **kwargs: Other arguments to imageio.mimsave().
-
-    '''
+    """
+    if 'fps' in kwargs and file.endswith('.gif'):
+        kwargs.setdefault('duration', 1/kwargs.pop('fps'))
     if isinstance(frames[0], Drawing):
         frames = render_svg_frames(frames, **kwargs)
     kwargs.pop('align_bottom', None)

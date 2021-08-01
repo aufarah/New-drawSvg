@@ -51,7 +51,7 @@ d.append(draw.Lines(-80, -45,
 
 # Draw a rectangle
 r = draw.Rectangle(-80,0,40,50, fill='#1248ff')
-r.append_title("Our first rectangle")  # Add a tooltip
+r.append_title('Our first rectangle')  # Add a tooltip
 d.append(r)
 
 # Draw a circle
@@ -183,7 +183,7 @@ class Hyperlink(draw.DrawingParentElement):
     def __init__(self, href, target=None, **kwargs):
         # Other init logic...
         # Keyword arguments to super().__init__() correspond to SVG node
-        # arguments: stroke_width=5 -> stroke-width="5"
+        # arguments: stroke_width=5 -> <a stroke-width="5" ...>...</a>
         super().__init__(href=href, target=target, **kwargs)
 
 d = draw.Drawing(1, 1.2, origin='center')

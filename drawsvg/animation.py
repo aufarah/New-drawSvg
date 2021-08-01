@@ -1,9 +1,15 @@
+"""Frame-based animation of drawings."""
+
 import time
 
 from . import video
 
 
 class Animation:
+    """An object used to store and render vector animation frames.
+
+    See also: animate_video, animate_jupyter
+    """
     def __init__(self, draw_func=None, callback=None):
         self.frames = []
         if draw_func is None:
@@ -27,6 +33,11 @@ class Animation:
 
 
 class AnimationContext:
+    """A context manager used to store and preview frame-by-frame vector
+    animations.
+
+    See also: animate_video, animate_jupyter
+    """
     def __init__(self, draw_func=None, out_file=None,
                  jupyter=False, pause=False, clear=True, delay=0, disable=False,
                  video_args=None, _patch_delay=0.05):
@@ -71,34 +82,28 @@ class AnimationContext:
 
 
 def animate_video(out_file, draw_func=None, jupyter=False, **video_args):
-    '''
-    Returns a context manager that stores frames and saves a video when the
+    """Returns a context manager that stores frames and saves a video when the
     context exits.
 
     Example:
-    ```
-    with animate_video('video.mp4') as anim:
-        while True:
-            ...
-            anim.draw_frame(...)
-    ```
-    '''
+        with animate_video('video.mp4') as anim:
+            while True:
+                ...
+                anim.draw_frame(drawing_or_numpy_array)
+    """
     return AnimationContext(draw_func=draw_func, out_file=out_file,
                             jupyter=jupyter, video_args=video_args)
 
 
 def animate_jupyter(draw_func=None, pause=False, clear=True, delay=0.1,
                     **kwargs):
-    '''
-    Returns a context manager that displays frames in a Jupyter notebook.
+    """Returns a context manager that displays frames in a Jupyter notebook.
 
     Example:
-    ```
-    with animate_jupyter(delay=0.5) as anim:
-        while True:
-            ...
-            anim.draw_frame(...)
-    ```
-    '''
+        with animate_jupyter(delay=0.5) as anim:
+            while True:
+                ...
+                anim.draw_frame(drawing_or_numpy_array)
+    """
     return AnimationContext(draw_func=draw_func, jupyter=True, pause=pause,
                             clear=clear, delay=delay, **kwargs)
